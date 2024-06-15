@@ -2,3 +2,4 @@ web/node_modules
 web/.cache
 web/build
 .env
+.vscode/
