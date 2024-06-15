@@ -54,3 +54,17 @@ func (app *application) writeJSON(
 
 		return nil
 }
+
+func (app *application) errorJSON(response http.ResponseWriter, err error, status ...int) {
+	statusCode := http.StatusBadRequest
+
+	if len(status) > 0 {
+		statusCode = status[0]
+	}
+
+	var payload jsonResponse
+	payload.Error = true
+	payload.Message = err.Error()
+
+	app.writeJSON(response, statusCode, payload)
+}

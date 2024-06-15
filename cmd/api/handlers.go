@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -19,24 +18,14 @@ func (app *application) Login(response http.ResponseWriter, request *http.Reques
 	var creds credentials
 	var payload jsonResponse
 
-	err := json.NewDecoder(request.Body).Decode(&creds)
+	err := app.readJSON(response, request, &creds)
 	if err != nil {
-		// Throw err msg
-		app.errorLog.Println("invalid json")
+		app.errorLog.Println(err)
 		payload.Error = true
-		payload.Message = "invalid json"
-
-		out, err := json.MarshalIndent(payload, "", "\t")
-
-		if err != nil {
-			app.errorLog.Println(err)
-		}
-
-		response.Header().Set("Content-Type", "application/json")
-		response.WriteHeader(http.StatusOK)
-		response.Write(out)
-		return
+		payload.Message = "missing or invalid json"
+		_ = app.writeJSON(response, http.StatusBadRequest, payload)
 	}
+
 	// Authenticate
 	app.infoLog.Println(creds.UserName, creds.Password)
 
@@ -44,15 +33,9 @@ func (app *application) Login(response http.ResponseWriter, request *http.Reques
 	payload.Error = false
 	payload.Message = "Signed in"
 
-	out, err := json.MarshalIndent(payload, "", "\t")
+	err = app.writeJSON(response, http.StatusOK, payload)
 
 	if err != nil {
 		app.errorLog.Println(err)
 	}
-
-	response.Header().Set("Content-Type", "application/json")
-	response.WriteHeader(http.StatusOK)
-	response.Write(out)
-
-
 }
