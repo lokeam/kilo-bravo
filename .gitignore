@@ -4,3 +4,6 @@ web/.cache
 web/build
 .env
 .vscode/
+
+# Make binaries
+kbapi
