@@ -2,8 +2,13 @@ package data
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/base32"
 	"errors"
+	"net/http"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -268,6 +273,7 @@ func (t *Token) GetByToken(plainText string) (*Token, error) {
 	return &token, nil
 }
 
+
 func (t *Token) GetUserForToken(token Token) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
 	defer cancel()
@@ -292,4 +298,132 @@ func (t *Token) GetUserForToken(token Token) (*User, error) {
 	}
 
 	return nil, err
+}
+
+
+func (t *Token) GenerateToken(userID int, ttl time.Duration) (*Token, error) {
+	token := &Token {
+		UserID: userID,
+		Expiry: time.Now().Add(ttl),
+	}
+
+	randomBytes := make([]byte, 16)
+	_, err := rand.Read(randomBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	// Plaintxt token
+	token.Token = base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(randomBytes)
+
+	// Init hash
+	hash := sha256.Sum256([]byte(token.Token))
+
+	// Make sure that hash is a slice of bytes
+	token.TokenHash = hash[:]
+
+	return token, nil
+}
+
+
+func (t *Token) AuthenticateToken(request * http.Request) (*User, error) {
+	authorizationHeader := request.Header.Get("Authorization")
+	if authorizationHeader == "" {
+		return nil, errors.New("no authorization header received")
+	}
+
+	headerSections := strings.Split(authorizationHeader, " ")
+	if len(headerSections) != 2 || headerSections[0] != "Bearer" {
+		return nil, errors.New("no valid authorization header received")
+	}
+
+	token := headerSections[1]
+
+	if len(token) != 26 {
+		return nil, errors.New("token is of incorrect size")
+	}
+
+	dbToken, err := t.GetByToken(token)
+	if err != nil {
+		return nil, errors.New("no matching token found")
+	}
+
+	if dbToken.Expiry.Before(time.Now()) {
+		return nil, errors.New("token has expired")
+	}
+
+	user, err := t.GetUserForToken(*dbToken)
+	if err != nil {
+		return nil, errors.New("no matching user found")
+	}
+
+	return user, nil
+}
+
+
+func (t *Token) Insert(token Token, u User) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	// delete existing tokens
+	statement := `delete from tokens where user_id = $1`
+	_, err := db.ExecContext(ctx, statement, token.UserID)
+	if err != nil {
+		return err
+	}
+
+	token.Email = u.Email
+
+	statement = `insert into tokens (user_id, email, token, token_hash, created_at, updated_at, expiry)
+			values ($1, $2, $3, $4, $5, $6, $7)`
+
+	_, err = db.ExecContext(ctx, statement,
+		token.UserID,
+		token.Email,
+		token.Token,
+		token.TokenHash,
+		time.Now(),
+		time.Now(),
+		token.Expiry,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+
+func (t *Token) DeleteByToken(plainText string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	statement := `delete from tokens where token = $1`
+
+	_, err := db.ExecContext(ctx, statement, plainText)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+
+func (t *Token) ValidToken(plainText string) (bool, error) {
+	token, err := t.GetByToken(plainText)
+	if err != nil {
+		return false, errors.New("no matching token found")
+	}
+
+	_, err = t.GetUserForToken(*token)
+	if err != nil  {
+		return false, errors.New("no matching user found")
+	}
+
+	if token.Expiry.Before(time.Now()) {
+		return false, errors.New("expired token")
+	}
+
+	return true, nil
 }
