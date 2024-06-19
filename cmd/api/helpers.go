@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"strings"
 )
 
 func (app *application) readJSON(response http.ResponseWriter, request *http.Request,
@@ -62,9 +63,24 @@ func (app *application) errorJSON(response http.ResponseWriter, err error, statu
 		statusCode = status[0]
 	}
 
+	var customErr error
+	switch {
+	case strings.Contains(err.Error(), "SQLSTATE 23505"):
+		customErr = errors.New("error - that value already exists in db")
+		statusCode = http.StatusForbidden
+	case strings.Contains(err.Error(), "SQLSTATE 22001"):
+		customErr = errors.New("error - value you are trying to insert is too large")
+		statusCode = http.StatusForbidden
+	case strings.Contains(err.Error(), "SQLSTATE 23503"):
+		customErr = errors.New("error - corresponding foreign key doesn't exist")
+		statusCode = http.StatusForbidden
+	default:
+		customErr = err
+	}
+
 	var payload jsonResponse
 	payload.Error = true
-	payload.Message = err.Error()
+	payload.Message = customErr.Error()
 
 	app.writeJSON(response, statusCode, payload)
 }
