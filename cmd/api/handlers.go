@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"net/http"
+	"time"
 )
 
 type jsonResponse struct {
@@ -32,12 +34,42 @@ func (app *application) Login(response http.ResponseWriter, request *http.Reques
 	// Authenticate
 	app.infoLog.Println(creds.UserName, creds.Password)
 
-	// send back response
-	payload.Error = false
-	payload.Message = "Signed in"
+	// lookup user by email
+	user, err := app.models.User.GetByEmail(creds.UserName)
+	if err != nil {
+		app.errorJSON(response, errors.New("invalid username or password"))
+		return
+	}
+
+	// validate user pw
+	validPassword, err := user.PasswordMatches(creds.Password)
+	if err != nil || !validPassword {
+		app.errorJSON(response, errors.New("invalid username or password"))
+		return
+	}
+
+	// if valid, generate token
+	token, err := app.models.Token.GenerateToken(user.ID, 24 * time.Hour)
+	if err != nil {
+		app.errorJSON(response, err)
+		return
+	}
+
+	// save to db
+	err = app.models.Token.Insert(*token, *user)
+	if err != nil {
+		app.errorJSON(response, err)
+		return
+	}
+
+	// send back res
+	payload = jsonResponse{
+		Error: false,
+		Message: "logged in",
+		Data: envelope{"token": token},
+	}
 
 	err = app.writeJSON(response, http.StatusOK, payload)
-
 	if err != nil {
 		app.errorLog.Println(err)
 	}
