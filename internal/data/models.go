@@ -32,15 +32,14 @@ type Models struct {
 }
 
 type User struct {
-	ID 				int				`json:"id"`
-	Email			string		`json:"email"`
-	FirstName	string		`json:"first_name,omitempty"`
-	LastName	string		`json:"last_name,omitempty"`
-
-	Password	string		`json:"password"`
-	CreatedAt	time.Time	`json:"created_at"`
-	UpdatedAt	time.Time	`json:"updated_at"`
-	Token			Token			`json:"token"`
+	ID        int       `json:"id"`
+	Email     string    `json:"email"`
+	FirstName string    `json:"first_name,omitempty"`
+	LastName  string    `json:"last_name,omitempty"`
+	Password  string    `json:"password"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Token     Token     `json:"token"`
 }
 
 func (u *User) GetAll() ([]*User, error) {
@@ -68,7 +67,7 @@ func (u *User) GetAll() ([]*User, error) {
 			&user.CreatedAt,
 			&user.UpdatedAt,
 		)
-		if err != nil  {
+		if err != nil {
 			return nil, err
 		}
 
@@ -127,7 +126,7 @@ func (u *User) GetByUserId(id int) (*User, error) {
 		return nil, err
 	}
 
-	return nil, err
+	return &user, nil
 }
 
 
