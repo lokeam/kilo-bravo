@@ -3,14 +3,11 @@ import { SiGooglehome } from "react-icons/si";
 import { MdOutlineGridView } from "react-icons/md";
 import { HiOutlineCollection } from "react-icons/hi";
 import { IoHelpBuoyOutline } from "react-icons/io5";
-import { FaRegBell } from "react-icons/fa6";
-
-
 
 export default function SideBar() {
   return (
-    <aside className="fixed top-0 left-0 z-40 w-64 h-screen pt-14 transition-transform -translate-x-full bg-white border-r border-gray-200 md:translate-x-0 dark:bg-gray-800 dark:border-gray-700 z-40" aria-label="Sidenav" id="drawer-navigation" aria-hidden="true">
-      <div className="overflow-y-auto py-5 px-3 h-full bg-white dark:bg-gray-800">
+    <aside className="fixed top-0 left-0 w-64 h-screen pt-14 transition-transform -translate-x-full bg-white border-r border-gray-200 md:translate-x-0 dark:bg-gray-800 dark:border-gray-700 z-30" aria-label="Sidenav" id="drawer-navigation" aria-hidden="true">
+      <div className="overflow-y-auto py-5 px-3 bg-white dark:bg-gray-800">
           <form action="#" method="GET" className="md:hidden mb-2">
             <label htmlFor="sidebar-search" className="sr-only">Search</label>
             <div className="relative">

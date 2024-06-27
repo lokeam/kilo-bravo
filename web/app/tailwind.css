@@ -1,3 +1,21 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+@layer base {
+
+  /* Hardcode dark mode in development */
+  html {
+    background-color: #0F172A;
+  }
+
+  /* Overwrite original webkit background color */
+  input:-webkit-autofill,
+  input:-webkit-autofill:focus {
+      transition: background-color 600000s 0s, color 600000s 0s;
+  }
+  input[data-autocompleted] {
+      background-color: transparent !important;
+  }
+}

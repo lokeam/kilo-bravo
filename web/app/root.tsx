@@ -8,8 +8,6 @@ import {
 } from "@remix-run/react";
 import "./tailwind.css";
 
-import MainNavigation from "./components/MainNavigation";
-
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
@@ -20,9 +18,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body className="relative">
-        <header>
-          <MainNavigation />
-        </header>
         {children}
         <ScrollRestoration />
         <Scripts />

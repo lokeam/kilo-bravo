@@ -1,14 +1,19 @@
+import { useState } from "react";
 import { Link } from "@remix-run/react"
 
 import { IoSearchOutline } from "react-icons/io5";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { FaBell, FaPlus } from "react-icons/fa6";
 
+import Modal from "./Modal";
+import NewBookForm from "./NewBookForm";
+
 export default function MainNavigation() {
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <header className="antialiased">
-      <nav className="fixed left-0 right-0 top-0 z-50 bg-gray-800 border-b border-gray-700 px-4 lg:px-6 py-2.5 text-white">
+      <nav className="fixed left-0 right-0 top-0 z-40 bg-gray-800 border-b border-gray-700 px-4 lg:px-6 py-2.5 text-white">
         <div className="flex flex-wrap justify-between items-center">
           <div className="flex justify-start items-center">
             <button
@@ -47,12 +52,24 @@ export default function MainNavigation() {
           </div>
           {/* ----- Mobile ----- */}
           <div className="flex items-center lg:order-2">
+
+                {/* ---- Add Book btn ---- */}
                 <button
                   type="button"
                   className="flex items-center justify-center text-primary-400 hover:bg-gray-700 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-lg p-3 focus:outline-none dark:focus:ring-primary-800 mr-1"
+                  onClick={() => setIsOpen(true)}
                 >
                   <FaPlus />
                 </button>
+
+                {/* ---- Modal ---- */}
+                <Modal
+                  isOpen={isOpen}
+                  onClose={() => setIsOpen(false)}
+                >
+                  <NewBookForm />
+                </Modal>
+
                 <button type="button" data-dropdown-toggle="notification-dropdown" className="p-3 mr-1 text-gray-500 rounded-lg hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600">
                   <span className="sr-only">View notifications</span>
                   <FaBell />
