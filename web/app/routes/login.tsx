@@ -1,9 +1,77 @@
-import { ActionFunctionArgs, redirect } from "@remix-run/node"
+import { ActionFunctionArgs, json, MetaFunction } from '@remix-run/node';
+import { Form, useActionData } from '@remix-run/react';
+import { useEffect, useRef } from 'react';
+
+// import { validateEmail } from '../utils/auth_utils';
+
+export const action = async ({ request }: ActionFunctionArgs) => {
+  const formData = await request.formData();
+  const email = formData.get('email');
+  const password = formData.get('password');
+
+  if (!validateEmail(email)) {
+    return json(
+      { errors: { email: 'Enter an email', password: null } },
+      { status: 400 },
+    )
+  }
+
+  if (typeof password !== 'string' || password.length === 0) {
+    return json(
+      { errors: { email: null, password: 'Enter a password'} }
+    )
+  }
+
+  if (password.length < 8) {
+    return json(
+      { errors: { email: null, password: "Password must be longer than 8 characters "} },
+      { status: 400 },
+    );
+  }
+
+  // Auth server call
+  const response = await fetch('http://localhost:8081/users/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      email,
+      password,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.log('response not ok, response: ', response);
+    console.log('error text: ', errorText);
+    return json(
+      { errors: { email: "Invalid email or password", password: null } }
+  );
+  } else {
+    console.log('response ok: ', response);
+
+  }
+}
+
+export const meta: MetaFunction = () => [{ title: "Login" }];
 
 export default function Login() {
+  const actionData = useActionData<typeof action>();
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (actionData?.errors?.email) {
+      emailRef.current?.focus();
+    } else if (actionData?.errors?.password) {
+      passwordRef.current?.focus();
+    }
+  }, [actionData]);
+
   return (
-    <>
       <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
+        {/* ------ Logo + Login Prompt ------*/}
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
           <img
             className="mx-auto h-10 w-auto"
@@ -16,46 +84,63 @@ export default function Login() {
         </div>
 
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-          <form className="space-y-6" action="#" method="post">
+          <Form className="space-y-6" method="post">
+            {/* ------ Email Row ------*/}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-900">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium leading-6 text-gray-900">
                 Email address
               </label>
               <div className="mt-2">
                 <input
+                  autoComplete="email"
+                  aria-describedby="email-error"
+                  className="w-full rounded border border-gray-500 px-2 py-1 text-lg"
                   id="email"
                   name="email"
+                  ref={emailRef}
                   type="email"
-                  autoComplete="email"
-                  required
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                 />
+              {actionData?.errors?.email ? (
+                <div className="pt-1 text-red-700" id="email-error">
+                  {actionData.errors.email}
+                </div>
+              ) : null}
               </div>
             </div>
 
+            {/* ------ Password Row ------*/}
             <div>
               <div className="flex items-center justify-between">
-                <label htmlFor="password" className="block text-sm font-medium leading-6 text-gray-900">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-900">
                   Password
                 </label>
                 <div className="text-sm">
-                  <a href="#" className="font-semibold text-indigo-600 hover:text-indigo-500">
+                  <a href="/" className="font-semibold text-indigo-600 hover:text-indigo-500">
                     Forgot password?
                   </a>
                 </div>
               </div>
               <div className="mt-2">
                 <input
+                  autoComplete="current-password"
+                  aria-describedby="password-error"
+                  className="w-full rounded border border-gray-500 px-2 py-1 text-lg"
                   id="password"
                   name="password"
                   type="password"
-                  autoComplete="current-password"
-                  required
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  ref={passwordRef}
                 />
+              {actionData?.errors?.password ? (
+                <div className="pt-1 text-red-700" id="password-error">
+                  {actionData.errors.password}
+                </div>
+              ) : null}
               </div>
             </div>
 
+            {/* ------ Button Row ------*/}
             <div>
               <button
                 type="submit"
@@ -64,46 +149,9 @@ export default function Login() {
                 Sign in
               </button>
             </div>
-          </form>
+          </Form>
 
-          <p className="mt-10 text-center text-sm text-gray-500">
-            Not a member?{' '}
-            <a href="#" className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500">
-              Start a 14 day free trial
-            </a>
-          </p>
         </div>
       </div>
-    </>
-
   )
-}
-
-export async function action({request}: ActionFunctionArgs) {
-  const formData = await request.formData();
-  const email = formData.get("email");
-  const pw = formData.get("password");
-
-  console.log(`testing email + password ${email},${pw}`);
-  const response = await fetch('http://localhost:8081/users/login', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({email, pw})
-  }).then(data => {
-    console.log('Huzzah! Backend call successful. Data: ', data);
-  }).catch(err => {
-    console.log('Fetch error: ', err);
-  });
-
-  // if (!response.ok) {
-  //   throw new Error(`Failed to log in: ${response.status}`);
-  // }
-
-  /*
-    Assuming login returns a redirect URL or something similar
-    return redirect('/dashboard');
-  */
-  return redirect(`/login`);
 }
