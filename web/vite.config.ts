@@ -3,6 +3,12 @@ import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./setupTests.ts'],
+    include: ['tests/**/*.test.ts', 'tests/**/*.test.tsx'],
+  },
   plugins: [
     remix({
       future: {
