@@ -1,58 +1,58 @@
-import { ActionFunctionArgs, json, MetaFunction } from '@remix-run/node';
+import { MetaFunction } from '@remix-run/node';
 import { Form, Link, useActionData } from '@remix-run/react';
 import { useEffect, useRef } from 'react';
 
 // import { validateEmail } from '../utils/auth_utils';
 
-export const action = async ({ request }: ActionFunctionArgs) => {
-  const formData = await request.formData();
-  const email = formData.get('email');
-  const password = formData.get('password');
+// export const action = async ({ request }: ActionFunctionArgs) => {
+//   const formData = await request.formData();
+//   const email = formData.get('email');
+//   const password = formData.get('password');
 
-  // if (!validateEmail(email)) {
-  //   return json(
-  //     { errors: { email: 'Enter an email', password: null } },
-  //     { status: 400 },
-  //   )
-  // }
+//   // if (!validateEmail(email)) {
+//   //   return json(
+//   //     { errors: { email: 'Enter an email', password: null } },
+//   //     { status: 400 },
+//   //   )
+//   // }
 
-  if (typeof password !== 'string' || password.length === 0) {
-    return json(
-      { errors: { email: null, password: 'Enter a password'} }
-    )
-  }
+//   if (typeof password !== 'string' || password.length === 0) {
+//     return json(
+//       { errors: { email: null, password: 'Enter a password'} }
+//     )
+//   }
 
-  if (password.length < 8) {
-    return json(
-      { errors: { email: null, password: "Password must be longer than 8 characters "} },
-      { status: 400 },
-    );
-  }
+//   if (password.length < 8) {
+//     return json(
+//       { errors: { email: null, password: "Password must be longer than 8 characters "} },
+//       { status: 400 },
+//     );
+//   }
 
-  // Auth server call
-  const response = await fetch('http://localhost:8081/users/login', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      email,
-      password,
-    }),
-  });
+//   // Auth server call
+//   const response = await fetch('http://localhost:8081/users/login', {
+//     method: 'POST',
+//     headers: {
+//       'Content-Type': 'application/json',
+//     },
+//     body: JSON.stringify({
+//       email,
+//       password,
+//     }),
+//   });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.log('response not ok, response: ', response);
-    console.log('error text: ', errorText);
-    return json(
-      { errors: { email: "Invalid email or password", password: null } }
-  );
-  } else {
-    console.log('response ok: ', response);
+//   if (!response.ok) {
+//     const errorText = await response.text();
+//     console.log('response not ok, response: ', response);
+//     console.log('error text: ', errorText);
+//     return json(
+//       { errors: { email: "Invalid email or password", password: null } }
+//   );
+//   } else {
+//     console.log('response ok: ', response);
 
-  }
-}
+//   }
+// }
 
 export const meta: MetaFunction = () => [{ title: "Login" }];
 
@@ -69,6 +69,7 @@ export default function Login() {
     }
   }, [actionData]);
 
+
   return (
     <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
         <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
@@ -76,7 +77,9 @@ export default function Login() {
                 <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
                   Sign in to your account
               </h1>
-                <form className="space-y-4 md:space-y-6" action="#">
+                <Form className="space-y-4 md:space-y-6" action="/auth/oauth" method="POST">
+
+                    {/* ----- Email/PW ------ */}
                     <div>
                         <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your email</label>
                         <input type="email" name="email" id="email" className="border text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 dark:text-white dark:focus:border-blue-500"
@@ -94,7 +97,13 @@ export default function Login() {
                       <div className="text-white px-5 text-center eCx_6PNzncAD5yo7Qcic">or</div>
                       <div className="h-3 border-gray-600 border-b-[2px] w-full"></div>
                     </div>
-                    <a href="https://www.google.com" className="text-white justify-center w-full border border-gray-700 hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-[#4285F4]/50 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-[#4285F4]/55 me-2 mb-2">
+
+                    {/* ----- OAuth ------ */}
+                    <button
+                      type="button"
+                      className="text-white justify-center w-full border border-gray-700 hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-[#4285F4]/50 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-[#4285F4]/55 me-2 mb-2"
+                      name="Login with Google"
+                      >
                       <svg className="w-4 h-4 me-2" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <g clipPath="url(#clip0_13183_10121)">
                               <path d="M20.3081 10.2303C20.3081 9.55056 20.253 8.86711 20.1354 8.19836H10.7031V12.0492H16.1046C15.8804 13.2911 15.1602 14.3898 14.1057 15.0879V17.5866H17.3282C19.2205 15.8449 20.3081 13.2728 20.3081 10.2303Z" fill="#3F83F8"></path>
@@ -111,7 +120,7 @@ export default function Login() {
                         </defs>
                       </svg>
                       Sign in with Google
-                    </a>
+                    </button>
                     {/* ----- Remember Me ------ */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-start">
@@ -129,7 +138,7 @@ export default function Login() {
                     <p className="text-sm font-light text-gray-500 dark:text-gray-400">
                         Don’t have an account yet? <Link to="/" className="font-medium text-primary-600 hover:underline dark:text-primary-500">Sign up</Link>
                     </p>
-                </form>
+                </Form>
             </div>
         </div>
     </div>
