@@ -1,18 +1,26 @@
-import { Authenticator } from "remix-auth";
-import { GoogleStrategy } from "remix-auth-google";
-import { sessionStorage } from "./session.server";
+import { Oauth2 } from './../../node_modules/googleapis/build/src/apis/oauth2/v2.d';
+import { google } from "googleapis";
 
-export const authenticator = new Authenticator(sessionStorage);
+export async function getGoogleTokens(code: string) {
+  const oauth2Client = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    process.env.GOOGLE_REDIRECT_URI
+  );
 
-const googleStrategy = new GoogleStrategy(
-  {
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: process.env.GOOGLE_CALLBACK_URL,
-  },
-  async({ accessToken, refreshToken, extraParams, profile}) => {
-    return { email: profile.emails[0].value, name: profile.displayName };
-  }
-);
+  const { tokens } = await oauth2Client.getToken(code);
+  return {
+    accessToken: tokens.access_token,
+    refreshToken: tokens.refresh_token,
+  };
+}
 
-authenticator.use(googleStrategy);
+export async function getGoogleUserInfo(accessToken: string) {
+  const oauth2Client = new google.auth.OAuth2();
+  oauth2Client.setCredentials({ access_token: accessToken });
+
+  const oauth2 = google.oauth2({ version: "v2", auth: oauth2Client });
+  const userInfo = await oauth2.userinfo.get();
+
+  return userInfo.data;
+}
