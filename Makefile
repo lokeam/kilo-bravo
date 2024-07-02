@@ -10,7 +10,7 @@ build:
 ## run: builds + runs app
 run: build
 	@echo "Starting BE..."
-	@env DSN=${DSN} ./${BINARY_NAME} &
+	@env DSN=${DSN} ./${BINARY_NAME} 2>&1 | tee backend.log
 	@echo "BE started!"
 
 ## clean: runs go clean + deletes binaries
@@ -21,7 +21,9 @@ clean:
 	@echo "Cleaned!"
 
 ## start: run alias
-start: run
+start: build
+	@echo "Loading environment variables..."
+	@export $$(cat .env | xargs) && ./$(BINARY_NAME) 2>&1 | tee backend.log
 
 ## stop: stops the currently running app
 stop:
@@ -31,3 +33,9 @@ stop:
 
 ## restart: stops + starts running app
 restart: stop start
+
+## help: print this help message
+.PHONY: help
+help:
+	@echo 'Usage:'
+	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' |  sed -e 's/^/ /'
