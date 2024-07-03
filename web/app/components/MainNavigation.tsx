@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link } from "@remix-run/react"
 
+import Avatar from "./Avatar";
+
 import { IoSearchOutline } from "react-icons/io5";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { FaBell, FaPlus } from "react-icons/fa6";
@@ -14,6 +16,12 @@ import NewBookForm from "./NewBookForm";
 
 export default function MainNavigation() {
   const [isOpen, setIsOpen] = useState(false);
+
+  const avatarData = {
+    alt: 'picture of border collie',
+    img: 'https://images.unsplash.com/photo-1503256207526-0d5d80fa2f47?q=80&w=1886&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    initials: 'HD'
+  };
 
   return (
     <header className="antialiased">
@@ -70,6 +78,7 @@ export default function MainNavigation() {
           {/* ----- Mobile / Nav End ----- */}
           <div className="navEnd">
             <div className="flex items-center">
+
                   {/* ---- Add Book btn ---- */}
                   <button
                     type="button"
@@ -94,7 +103,8 @@ export default function MainNavigation() {
 
                   <button type="button" className="flex mx-3 text-sm bg-gray-800 rounded-full md:mr-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600" id="user-menu-button" aria-expanded="false" data-dropdown-toggle="dropdown">
                     <span className="sr-only">Open user menu</span>
-                      <img className="w-8 h-8 rounded-full" src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=1674&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="avatar" />
+                    {/* ----- Avatar Component ----- */}
+                    <Avatar alt={avatarData.alt} img={avatarData.img} initials={avatarData.initials}/>
                   </button>
             </div>
           </div>
