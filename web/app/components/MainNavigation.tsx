@@ -4,6 +4,7 @@ import { Link } from "@remix-run/react"
 import { IoSearchOutline } from "react-icons/io5";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { FaBell, FaPlus } from "react-icons/fa6";
+import { TfiClose } from "react-icons/tfi";
 import kbLogo from "../../public/tk_icon.webp";
 
 import Modal from "./Modal";
