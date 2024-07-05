@@ -6,37 +6,52 @@ import MainNavigation from "../components/MainNavigation";
 import SideNav from '../components/SideNav/index'
 
 interface SidebarState {
-  isOpen: boolean;
+  collapses: Record<string, boolean>;
 }
 
-// Define the structure of the data returned by the loader
 interface LoaderData {
   sidenavState: SidebarState;
 }
 
+// Make sure the loader function is structured to match what the client expects
 export const loader: LoaderFunction = async ({ request }) => {
   const cookieHeader = request.headers.get('Cookie');
-  const sidenavState = await sidenavStateCookie.parse(cookieHeader) || { isOpen: false };
+  //const defaultState = { collapses: { viewAs: false, categories: false } };
+  // If no cookie is present, initialize properly
+  const sidenavState = (await sidenavStateCookie.parse(cookieHeader)) || { collapses: { viewAs: false, categories: false } };
 
-  console.log("Parsed Cookie State:", sidenavState);
   return json({ sidenavState });
 }
 
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
-  const isOpen = formData.get('isOpen') === 'true';
+  const collapseKey = formData.get('collapseKey') as string | null;
+  const isOpen = (formData.get('isOpen') as string | null) === 'true';
+
+  if (!collapseKey) {
+    return json({ error: "Collapse key is missing" }, { status: 400 });
+  }
 
   const cookieHeader = request.headers.get('Cookie');
-  let cookie = await sidenavStateCookie.parse(cookieHeader) || {};
-  cookie.isOpen = isOpen;
+  let state = await sidenavStateCookie.parse(cookieHeader);
 
-  return json({ isOpen }, {
+  // Ensure state and collapses are properly initialized if undefined
+  if (!state || !state.collapses) {
+    state = { collapses: { viewAs: false, categories: false } };
+  }
+
+  if (collapseKey in state.collapses) {
+    state.collapses[collapseKey] = isOpen;
+  } else {
+    return json({ error: "Invalid collapse key" }, { status: 400 });
+  }
+
+  return json({}, {
     headers: {
-      'Set-Cookie': await sidenavStateCookie.serialize(cookie),
+      'Set-Cookie': await sidenavStateCookie.serialize(state),
     }
-  })
-}
-
+  });
+};
 
 export default function Library() {
   const { sidenavState } = useLoaderData<LoaderData>();
