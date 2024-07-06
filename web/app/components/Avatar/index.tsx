@@ -3,10 +3,17 @@ export interface AvatarProps {
   alt?: string;
   img?: string;
   initials: string;
+  size?: 'sm' | 'md' | 'lg';
 }
 
-export default function Avatar({ alt, img, initials}: AvatarProps) {
+export default function Avatar({ alt, img, initials, size = 'sm'}: AvatarProps) {
   const truncatedInitials = initials.length > 2 ? initials.substring(0, 2) : initials;
+
+  const avatarSize = {
+    'sm': 'h-10 w-10',
+    'md': 'h-20 w-20',
+    'lg': 'h-32 w-32'
+  };
 
   return (
     <div className="flex items-center justify-center space-x-4 rounded avatar text-white">
@@ -19,7 +26,7 @@ export default function Avatar({ alt, img, initials}: AvatarProps) {
           ) : (
             <img
               alt={(alt === '') ? 'user avatar' : alt}
-              className="rounded-full h-10 w-10"
+              className={`rounded-full ${avatarSize[size]}`}
               src={img}
             />
           )

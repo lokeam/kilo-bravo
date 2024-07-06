@@ -1,21 +1,23 @@
-import { useState } from "react";
-import { Link } from "@remix-run/react"
+import { useState } from 'react';
+import { Link } from '@remix-run/react'
 
-import Avatar from "./Avatar";
+import { IoSearchOutline } from 'react-icons/io5';
+import { GiHamburgerMenu } from 'react-icons/gi';
+import { FaBell, FaPlus } from 'react-icons/fa6';
+import { TfiClose } from 'react-icons/tfi';
 
-import { IoSearchOutline } from "react-icons/io5";
-import { GiHamburgerMenu } from "react-icons/gi";
-import { FaBell, FaPlus } from "react-icons/fa6";
-import { TfiClose } from "react-icons/tfi";
-import kbLogo from "../../public/tk_icon.webp";
+import Avatar from '../Avatar';
+import Modal from '../Modal';
+import NewBookForm from '../Forms/NewBookForm';
+import NewCategoryForm from '../Forms/NewCategoryForm';
+import DeleteBookForm from '../Forms/DeleteBookForm';
+import SignoutForm from '../Forms/SignoutForm';
 
-import Modal from "./Modal";
-import NewBookForm from "./NewBookForm";
-
-
+import kbLogo from '../../../tk_icon.webp';
 
 export default function MainNavigation() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isAddModalOpen, setIsisAddModalOpenOpen] = useState(false);
+  const [isSignoutOpen, setIsSignoutOpen] = useState(false);
 
   const avatarData = {
     alt: 'picture of border collie',
@@ -83,17 +85,19 @@ export default function MainNavigation() {
                   <button
                     type="button"
                     className="flex items-center justify-center text-hepatica hover:bg-gray-700 focus:ring-4 focus:ring-primary-300 font-medium rounded text-lg p-3 focus:outline-none dark:focus:ring-primary-800 mr-1"
-                    onClick={() => setIsOpen(true)}
+                    onClick={() => setIsisAddModalOpenOpen(true)}
                   >
                     <FaPlus />
                   </button>
 
                   {/* ---- Modal ---- */}
                   <Modal
-                    isOpen={isOpen}
-                    onClose={() => setIsOpen(false)}
+                    isOpen={isAddModalOpen}
+                    onClose={() => setIsisAddModalOpenOpen(false)}
+                    size="sm"
+                    modalHeading="Add Book"
                   >
-                    <NewBookForm />
+                    <NewCategoryForm />
                   </Modal>
 
                   <button type="button" data-dropdown-toggle="notification-dropdown" className="p-3 mr-1 text-gray-500 rounded hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600">
@@ -101,11 +105,28 @@ export default function MainNavigation() {
                     <FaBell />
                   </button>
 
-                  <button type="button" className="flex mx-3 text-sm bg-gray-800 rounded-full md:mr-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600" id="user-menu-button" aria-expanded="false" data-dropdown-toggle="dropdown">
+                  <button
+                    type="button"
+                    className="flex mx-3 text-sm bg-gray-800 rounded-full md:mr-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
+                    id="user-menu-button"
+                    aria-expanded="false"
+                    data-dropdown-toggle="dropdown"
+                    onClick={() => setIsSignoutOpen(true)}
+                  >
                     <span className="sr-only">Open user menu</span>
                     {/* ----- Avatar Component ----- */}
-                    <Avatar alt={avatarData.alt} img={avatarData.img} initials={avatarData.initials}/>
+                    <Avatar alt={avatarData.alt} img={avatarData.img} initials={avatarData.initials} size="sm"/>
                   </button>
+
+                  {/* ---- Modal ---- */}
+                  <Modal
+                    isOpen={isSignoutOpen}
+                    onClose={() => setIsSignoutOpen(false)}
+                    size="sm"
+                    modalHeading=""
+                  >
+                    <SignoutForm />
+                  </Modal>
             </div>
           </div>
 

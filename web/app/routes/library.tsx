@@ -2,7 +2,7 @@ import { Outlet, useLoaderData } from '@remix-run/react';
 import { ActionFunction, json, LoaderFunction } from '@remix-run/node';
 import { sidenavStateCookie } from '../services/cookies.server';
 
-import MainNavigation from "../components/MainNavigation";
+import MainNavigation from "../components/MainNav/index";
 import SideNav from '../components/SideNav/index'
 
 interface SidebarState {

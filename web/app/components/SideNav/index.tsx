@@ -7,7 +7,7 @@ import { SideNavCollapse } from './SideNavCollapse';
 // Icons and Logos
 import { MdOutlineGridView } from 'react-icons/md';
 import { HiOutlineCollection } from 'react-icons/hi';
-import kbLogo from '../../../public/tk_icon.webp'
+import kbLogo from '../../../tk_icon.webp'
 
 interface SideNavState {
   collapses: Record<string, boolean>;
