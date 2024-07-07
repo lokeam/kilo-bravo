@@ -5,6 +5,16 @@
 
 @layer base {
 
+
+  :root {
+
+    --min-column-width-sm: 160px;
+    /* 1630px wide and above */
+    --min-column-width-lg: 210px;
+    --encore-spacing-tighter: 8px;
+    --hover-transition-1: .25s;
+  }
+
   /* Hardcode dark mode in development */
   html {
     background-color: #0F172A;
@@ -38,5 +48,58 @@
     min-width: 150px;
     align-items: center;
     justify-content: flex-end;
+  }
+
+  .grid_carousel {
+    grid-auto-rows: 0;
+    content-visibility: auto;
+  }
+
+  @media (min-width: 896px) {
+    .grid_carousel {
+      overflow: hidden;
+    }
+  }
+
+
+  .gridContainerTempCols {
+    grid-template-columns: repeat(auto-fill,minmax(var(--min-column-width-sm),1fr));
+  }
+
+  @media (min-width: 1630px) {
+      .gridContainerTempCols {
+        grid-template-columns: repeat(auto-fill,minmax(var(--min-column-width-lg),1fr));
+      }
+  }
+
+  .card_wrapper {
+    row-gap: var(--encore-spacing-tighter, 8px);
+    padding-inline: 12px;
+    padding-block: 12px;
+    min-block-size: 48px;
+    -o-transition: var(--hover-transition-1);
+    -ms-transition: var(--hover-transition-1);
+    -moz-transition: var(--hover-transition-1);
+    -webkit-transition: var(--hover-transition-1);
+    transition: var(--hover-transition-1);
+    z-index: 5;
+  }
+
+  .thumbnail {
+    z-index: 10;
+  }
+
+  .card_wrapper:hover {
+    background-color: #343434;
+    border-radius: 6px;
+  }
+
+  .card-copy,
+  .copy_container {
+    max-width: 99%;
+  }
+
+  .card_thumbnail_container {
+    padding-bottom: 100%;
   }
 }
