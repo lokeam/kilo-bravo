@@ -7,12 +7,35 @@
 
 
   :root {
-
     --min-column-width-sm: 160px;
     /* 1630px wide and above */
     --min-column-width-lg: 210px;
     --encore-spacing-tighter: 8px;
     --hover-transition-1: .25s;
+
+    /* refactor styles */
+    --grid-small: 4;
+    --grid-medium: 5;
+    --grid-large: 6;
+    --grid-xlarge: 6;
+
+    --grid-rows: 1;
+    --grid-max-content-xsmall: 144px;
+
+    --grid-column-gap-xsmall: 10px;
+    --grid-row-gap-xsmall: 24px;
+
+    --grid-column-gap-small: 20px;
+    --grid-row-gap-small: 24px;
+
+    --grid-column-gap-medium: 20px;
+    --grid-row-gap-medium: 24px;
+
+    --grid-column-gap-large: 20px;
+    --grid-row-gap-large: 24px;
+
+    --grid-column-gap-xlarge: 20px;
+    --grid-row-gap-xlarge: 24px;
   }
 
   /* Hardcode dark mode in development */
@@ -101,5 +124,104 @@
 
   .card_thumbnail_container {
     padding-bottom: 100%;
+  }
+
+  /* refactor styles */
+  .bookshelf_body {
+
+    /* Standard Properties */
+    scrollbar-color: #6366F1 #111827;
+    scrollbar-width: thin;
+
+    /* Safari */
+    ::-webkit-scrollbar {
+      /** the scrollbar */
+      background-color: #111827;
+    }
+    ::-webkit-scrollbar-button {
+      /** the up- and down- arrow buttons on the scrollbar */
+    }
+    ::-webkit-scrollbar-track {
+      /** the progress bar track of the scrollbar */
+      background-color: #111827;
+    }
+    ::-webkit-scrollbar-track-piece {
+      /** the progress bar track NOT covered by the handle */
+      background-color: #111827;
+    }
+    ::-webkit-scrollbar-thumb {
+      /** the draggable scrolling handle */
+      background-color: #6366F1;
+    }
+    ::-webkit-scrollbar-corner {
+      /** the bottom corner of the scrollbar, where both horizontal and vertical scrollbar meet */
+      background-color: #111827;
+    }
+    ::-webkit-resizer {
+      /** the draggable resizing handle that appears at the bottom corner of some elements */
+      background-color: #111827;
+    }
+  }
+
+  .bookshelf_grid {
+    -moz-column-gap: var(--grid-column-gap-xsmall);
+    column-gap: var(--grid-column-gap-xsmall);
+    grid-auto-columns: var(--grid-max-content-xsmall,calc((100% - (var(--grid-xsmall) - 1)*var(--grid-column-gap-xsmall))/var(--grid-xsmall)));
+    grid-template-rows: repeat(var(--grid-rows),max-content);
+    row-gap: var(--grid-row-gap-xsmall);
+    scrollbar-color: red;
+  }
+
+  .bookshelf_grid_item {
+    contain: content;
+    scroll-snap-align: start
+  }
+
+  @media (min-width: 1000px) {
+    .bookshelf_grid {
+      -moz-column-gap: var(--grid-column-gap-small);
+      column-gap: var(--grid-column-gap-small);
+      grid-auto-columns: var(
+        --grid-max-content-small,
+        calc(
+          (100% - (var(--grid-small) - 1) * var(--grid-column-gap-small)) /
+            var(--grid-small)
+        )
+      );
+      grid-template-rows: repeat(var(--grid-rows), max-content);
+      row-gap: var(--grid-row-gap-small);
+    }
+  }
+
+  @media (min-width: 1260px) and (max-width: 1579px){
+    .bookshelf_grid {
+      -moz-column-gap: var(--grid-column-gap-medium);
+      column-gap: var(--grid-column-gap-medium);
+      grid-auto-columns: var(
+        --grid-max-content-medium,
+        calc(
+          (100% - (var(--grid-medium) - 1) * var(--grid-column-gap-medium)) /
+            var(--grid-medium)
+        )
+      );
+      grid-template-rows: repeat(var(--grid-rows), max-content);
+      row-gap: var(--grid-row-gap-medium);
+    }
+  }
+
+  @media (min-width: 1580px) {
+    .bookshelf_grid {
+      -moz-column-gap: var(--grid-column-gap-large);
+      column-gap: var(--grid-column-gap-large);
+      grid-auto-columns: var(
+        --grid-max-content-large,
+        calc(
+          (100% - (var(--grid-large) - 1) * var(--grid-column-gap-large)) /
+            var(--grid-large)
+        )
+      );
+      grid-template-rows: repeat(var(--grid-rows), max-content);
+      row-gap: var(--grid-row-gap-large);
+    }
   }
 }

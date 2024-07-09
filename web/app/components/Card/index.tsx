@@ -1,21 +1,19 @@
+import React from 'react';
 
-export interface CardProps {
+interface CardProps {
   alt?: string;
   author?: string;
   img?: string;
-  key?: string;
   title?: string;
 }
-
-export default function Card({ alt, author, img, key, title }: CardProps) {
-
+ const Card = ({ alt, author, img, title }: CardProps) => {
   return (
-    <div className="card_wrapper w-full h-full inline-flex flex-col relative box-border truncate" key={`${key}-${title}`}>
+    <div className="card_wrapper relative box-border min-w-0 h-full cursor-pointer truncate">
       <div className="card_thumbnail rounded-md relative ">
         <div className="card_thumbnail_container relative rounded-md w-full">
           <img
             alt={alt}
-            className="thumbnail max-h-52 absolute block top-0 left-0 h-full w-full rounded-md object-cover object-center cursor-pointer"
+            className="thumbnail absolute block top-0 left-0 h-full w-full rounded-md object-cover object-center cursor-pointer"
             loading="lazy"
             src={img}
           />
@@ -36,3 +34,5 @@ export default function Card({ alt, author, img, key, title }: CardProps) {
     </div>
   )
 }
+
+export default React.memo(Card);
