@@ -5,6 +5,7 @@ import { sidenavStateCookie } from '../services/cookies.server';
 import MainNavigation from "../components/MainNav/index";
 import SideNav from '../components/SideNav/index'
 import Grid from '../components/Views/Grid/index';
+import TableView from '../components/Views/Table';
 
 interface SidebarState {
   collapses: Record<string, boolean>;
@@ -61,7 +62,7 @@ export default function Library() {
     <div className="lg:px-8 antialiased bg-gray-900 md:ml-64 h-screen pt-24">
       <MainNavigation />
       <SideNav sidenavState={sidenavState}/>
-      <Grid />
+      <TableView />
       <Outlet />
     </div>
   )
