@@ -24,10 +24,11 @@ func (app *application) routes() http.Handler {
 		MaxAge: 300,
 	}))
 
-	mux.Get("/users/login", app.Login)
 	mux.Post("/users/login", app.Login)
-	mux.Post("/auth/oauth/callback", app.HandleGoogleCallback) // Add this line for the OAuth callback
 
+	mux.Post("/users/logout", app.Logout)
+
+	mux.Post("/auth/oauth/callback", app.HandleGoogleCallback) // Add this line for the OAuth callback
 
 	mux.Get("/users/all", func(response http.ResponseWriter, request *http.Request) {
 		var users data.User
