@@ -224,4 +224,22 @@
       row-gap: var(--grid-row-gap-large);
     }
   }
+
+  /* Table View */
+  .table_main {
+  }
+
+  .table_header {
+    background-color: #28313e;
+    border: none;
+  }
+
+  .table_row {
+    background-color: #182230;
+    -o-transition: var(--hover-transition-1);
+    -ms-transition: var(--hover-transition-1);
+    -moz-transition: var(--hover-transition-1);
+    -webkit-transition: var(--hover-transition-1);
+    transition: var(--hover-transition-1);
+  }
 }

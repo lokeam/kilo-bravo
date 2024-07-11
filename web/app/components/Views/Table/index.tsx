@@ -1,13 +1,19 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
   ColumnDef,
-  flexRender,
   getCoreRowModel,
-  Row,
+  getPaginationRowModel,
+  getSortedRowModel,
+  SortingFn,
   useReactTable,
+  VisibilityState,
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { allData } from '../../../mockData/mock';
+import TableHeader from '../../Table/TableHeader';
+import TableBody from '../../Table/TableBody';
+import TablePagination from '../../Table/TablePagination';
+import ColumnVisibilityControls from '../../Table/ColumnVisibilityControls';
 
 type Book = {
   author: string;
@@ -24,39 +30,26 @@ type Book = {
   language: string;
 }
 
-interface BookResponse {
-  author: string;
-  img: string;
-  title: string;
-  genre: string;
-  isbn: number;
-  pages: number;
-  isPhysical: boolean;
-  isEbook: boolean;
-  isAudio: boolean;
-  notes: string;
-  location: string;
-  language: string;
-}
-
-interface TableViewSettings {
-  allBooks: BookResponse[];
-}
+const customSort: SortingFn<Book> = (rowA, rowB, columnId) => {
+  const a = rowA.getValue(columnId)?.toString().toLowerCase() ?? '';
+  const b = rowB.getValue(columnId)?.toString().toLowerCase() ?? '';
+  return a.localeCompare(b);
+};
 
 const TableView: React.FC = () => {
   const [data, _setData] = useState(() => [...allData]);
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 11,
+  });
 
-  // Column Visibility
-  const [columnVisibility, setColumnVisibility] = useState({
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
     title: true,
     author: true,
     genre: true,
     isbn: true,
     language: true,
     pages: true,
-    isPhysical: true,
-    isEbook: true,
-    isAudio: true,
   });
 
   const columns = useMemo<ColumnDef<Book>[]>(
@@ -65,46 +58,37 @@ const TableView: React.FC = () => {
         accessorKey: 'title',
         header: 'Title',
         cell: (info) => info.getValue(),
+        sortingFn: customSort,
       },
       {
         accessorKey: 'author',
         header: 'Author',
         cell: (info) => info.getValue(),
+        sortingFn: customSort,
       },
       {
         accessorKey: 'genre',
         header: 'Genre',
         cell: (info) => info.getValue(),
+        sortingFn: customSort,
       },
       {
         accessorKey: 'isbn',
         header: 'ISBN',
         cell: (info) => info.getValue(),
+        sortingFn: 'basic',
       },
       {
         accessorKey: 'language',
         header: 'Language',
         cell: (info) => info.getValue(),
+        sortingFn: customSort,
       },
       {
         accessorKey: 'pages',
         header: 'Pages',
         cell: (info) => info.getValue(),
-      },
-      {
-        accessorKey: 'isPhysical',
-        header: 'Physical',
-        cell: (info) => info.getValue(),
-      },
-      {
-        accessorKey: 'isEbook',
-        header: 'Ebook',
-        cell: (info) => info.getValue(),
-      },
-      {
-        accessorKey: 'isAudio',
-        header: 'Audio',
-        cell: (info) => info.getValue(),
+        sortingFn: 'basic',
       },
     ],
     []
@@ -113,15 +97,25 @@ const TableView: React.FC = () => {
   const table = useReactTable({
     data,
     columns,
+    defaultColumn: {
+      size: 200,
+      minSize: 120,
+      maxSize: 700,
+    },
+    enableSorting: true,
     getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
+    onPaginationChange: setPagination,
     state: {
       columnVisibility,
+      pagination,
     },
   });
 
   const { rows } = table.getRowModel();
-  const parentRef = React.useRef<HTMLDivElement>(null);
+  const parentRef = useRef<HTMLDivElement>(null);
   const virtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => parentRef.current,
@@ -129,77 +123,19 @@ const TableView: React.FC = () => {
     overscan: 20,
   });
 
-  console.log(allData)
-
   return (
     <main className="p-4 h-auto pt-20">
       <h1 className="text-white">Table view</h1>
-      <div className="table_col_visibility_controls">
-        {Object.keys(columnVisibility).map((key) => (
-          <label key={key} className="text-white mr-2">
-            <input
-              checked={columnVisibility[key]}
-              type="checkbox"
-              onChange={() =>
-                setColumnVisibility((prev) => ({
-                  ...prev,
-                  [key]: !prev[key],
-                }))
-              }
-            />
-            {key}
-          </label>
-        ))}
-      </div>
-      <div ref={parentRef} className="table_wrapper">
-        <div style={{ height: `${virtualizer.getTotalSize()}px` }}>
-          <table>
-            <thead>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <th key={header.id} className="text-white">
-                      <div>
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                      </div>
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody>
-              {virtualizer.getVirtualItems().map((virtualRow, index) => {
-                const row = rows[virtualRow.index] as Row<Book>;
-
-                return (
-                  <tr
-                    key={row.id}
-                    className="text-white"
-                    style={{
-                      height: `${virtualRow.size}px`,
-                      transform: `translateY(${
-                        virtualRow.start - index * virtualRow.size
-                      }px)`,
-                    }}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                );
-              })}
-            </tbody>
+      <ColumnVisibilityControls columnVisibility={columnVisibility} setColumnVisibility={setColumnVisibility} />
+      <div ref={parentRef} className="table_wrapper flex flex-col overflow-hidden rounded whitespace-normal relative cursor-default">
+        <div className="table_virtualizer_wrapper" style={{ height: `${virtualizer.getTotalSize()}px` }}>
+          <table className="table_main relative rounded w-full">
+            <TableHeader table={table} />
+            <TableBody table={table} virtualizer={virtualizer} rows={rows} />
           </table>
         </div>
       </div>
+      <TablePagination table={table} />
     </main>
   );
 };
