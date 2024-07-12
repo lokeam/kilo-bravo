@@ -23,7 +23,7 @@ clean:
 ## start: run alias
 start: build
 	@echo "Loading environment variables..."
-	@export $$(cat .env | xargs) && ./$(BINARY_NAME) 2>&1 | tee backend.log
+	@set -o allexport; source .env; set +o allexport; ./$(BINARY_NAME) 2>&1 | tee backend.log
 
 ## stop: stops the currently running app
 stop:
