@@ -1,103 +1,122 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
+	"kilo-bravo/internal/data"
 	"net/http"
-	"time"
 )
 
 type jsonResponse struct {
-	Error 		bool		  	`json:"error"`
-	Message		string	  	`json:"message"`
-	Data			interface{}	`json:"data,omitempty"`
+    Error    bool        `json:"error"`
+    Message  string      `json:"message"`
+    Data     interface{} `json:"data,omitempty"`
 }
 
 type envelope map[string]interface{}
 
-func (app *application) Login(response http.ResponseWriter, request *http.Request) {
-	type credentials struct {
-		UserName 	string		`json:"email"`
-		Password 	string		`json:"password"`
-	}
+// Handler to process the Google OAuth callback
+func (app *application) HandleGoogleCallback(response http.ResponseWriter, request *http.Request) {
+	app.infoLog.Println("Handling Google OAuth callback")
 
-	var creds credentials
-	var payload jsonResponse
-
-	err := app.readJSON(response, request, &creds)
-	if err != nil {
-		app.errorLog.Println(err)
-		payload.Error = true
-		payload.Message = "missing or invalid json"
-		_ = app.writeJSON(response, http.StatusBadRequest, payload)
-	}
-
-	// Authenticate
-	app.infoLog.Println(creds.UserName, creds.Password)
-
-	// lookup user by email
-	user, err := app.models.User.GetByEmail(creds.UserName)
-	if err != nil {
-		app.errorJSON(response, errors.New("invalid username or password"))
+	code := request.URL.Query().Get("code")
+	if code == "" {
+		app.errorLog.Println("Code not found in request")
+		http.Error(response, "Code not found in request", http.StatusBadRequest)
 		return
 	}
 
-	// validate user pw
-	validPassword, err := user.PasswordMatches(creds.Password)
-	if err != nil || !validPassword {
-		app.errorJSON(response, errors.New("invalid username or password"))
+	app.infoLog.Printf("Received code: %s", code)
+
+	token, err := app.googleOauthConfig.Exchange(context.Background(), code)
+	if err != nil {
+		app.errorLog.Printf("Error exchanging code for token: %v", err)
+		http.Error(response, "Error exchanging code for token", http.StatusInternalServerError)
 		return
 	}
 
-	// if valid, generate token
-	token, err := app.models.Token.GenerateToken(user.ID, 24 * time.Hour)
+	client := app.googleOauthConfig.Client(context.Background(), token)
+	userInfoResponse, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
 	if err != nil {
-		app.errorJSON(response, err)
+		app.errorLog.Printf("Error getting user info %v", err)
+		http.Error(response, "Error getting user info", http.StatusInternalServerError)
 		return
 	}
 
-	// save to db
-	err = app.models.Token.Insert(*token, *user)
-	if err != nil {
-		app.errorJSON(response, err)
+	defer userInfoResponse.Body.Close()
+
+	var userInfo struct {
+		Id    string `json:"id"`
+		Email string `json:"email"`
+		Name  string `json:"name"`
+	}
+
+	// Decode response
+	if err := json.NewDecoder(userInfoResponse.Body).Decode(&userInfo); err != nil {
+		app.errorLog.Printf("Error decoding user info response: %v", err)
+		http.Error(response, "Error decoding user info response", http.StatusInternalServerError)
 		return
 	}
 
-	// send back res
-	payload = jsonResponse{
-		Error: false,
-		Message: "logged in",
-		Data: envelope{"token": token},
+	app.infoLog.Printf("User info received! - %+v", userInfo)
+
+	firstName, lastName := splitFullName(userInfo.Name)
+
+	// Save tokens + user info
+	user := data.User{
+		Email:     userInfo.Email,
+		FirstName: firstName,
+		LastName:  lastName,
+	}
+	userId, err := app.models.User.Insert(user)
+	if err != nil {
+		app.errorLog.Printf("Error adding user to db: %v", err)
+		http.Error(response, "Error adding user to db", http.StatusInternalServerError)
+		return
 	}
 
-	err = app.writeJSON(response, http.StatusOK, payload)
-	if err != nil {
-		app.errorLog.Println(err)
+	tokenRecord := data.Token{
+		UserID:       userId,
+		RefreshToken: token.RefreshToken,
+		TokenExpiry:  token.Expiry,
 	}
+
+	if err := app.models.Token.Insert(tokenRecord); err != nil {
+		app.errorLog.Printf("Error adding token to db %v", err)
+		http.Error(response, "Error inserting token", http.StatusInternalServerError)
+		return
+	}
+
+	app.infoLog.Printf("User and tokens stored successfully")
+
+	// Redirect to the frontend application
+	frontendURL := "http://localhost:5173/library"
+	http.Redirect(response, request, frontendURL, http.StatusSeeOther)
 }
 
 
 func (app *application) Logout(response http.ResponseWriter, request *http.Request) {
-	var requestPayload struct {
-		Token string `json:"token"`
-	}
+    var requestPayload struct {
+        Token string `json:"token"`
+    }
 
-	err := app.readJSON(response, request, &requestPayload)
+    err := app.readJSON(response, request, &requestPayload)
+    if err != nil {
+        app.errorJSON(response, errors.New("invalid JSON"))
+        return
+    }
 
-	if err != nil {
-		app.errorJSON(response, errors.New("invalid JSON"))
-		return
-	}
+    err = app.models.Token.DeleteByToken(requestPayload.Token)
+    if err != nil {
+        app.errorJSON(response, errors.New("invalid JSON - failed to delete token"))
+        return
+    }
 
-	err = app.models.Token.DeleteByToken(requestPayload.Token)
-	if err != nil {
-		app.errorJSON(response, errors.New("invalid JSON"))
-		return
-	}
+    payload := jsonResponse{
+        Error:   false,
+        Message: "logged out",
+    }
 
-	payload := jsonResponse{
-		Error: false,
-		Message: "logged out",
-	}
-
-	_ = app.writeJSON(response, http.StatusOK, payload)
+    _ = app.writeJSON(response, http.StatusOK, payload)
 }

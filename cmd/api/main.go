@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/joho/godotenv"
 	"golang.org/x/oauth2"
@@ -27,15 +28,39 @@ type application struct {
 
 // Load environment variables and verify them
 func init() {
-	// Load .env file
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
+	ex, err := os.Executable()
+	if err != nil {
+		log.Fatal(err)
+	}
+	dir := filepath.Dir(ex)
+	rootDir := findRootDir(dir)
+
+	// Construct the path to the .env file relative to the main.go location
+	envPath := filepath.Join(rootDir, ".env")
+	fmt.Println("Attempting to load .env file from:", envPath) // Debug print
+
+	if err := godotenv.Load(envPath); err != nil {
+		log.Fatalf("Error loading .env file from %s: %v", envPath, err)
 	}
 
 	// Verify environment variables
 	fmt.Println("GOOGLE_CLIENT_ID:", os.Getenv("GOOGLE_CLIENT_ID"))
 	fmt.Println("GOOGLE_CLIENT_SECRET:", os.Getenv("GOOGLE_CLIENT_SECRET"))
 	fmt.Println("GOOGLE_REDIRECT_URI:", os.Getenv("GOOGLE_REDIRECT_URI"))
+	fmt.Println("DSN:", os.Getenv("DSN"))
+}
+
+func findRootDir(currentDir string) string {
+	for {
+		if _, err := os.Stat(filepath.Join(currentDir, ".env")); err == nil {
+			return currentDir
+		}
+		parentDir := filepath.Dir(currentDir)
+		if parentDir == currentDir {
+			log.Fatal("Could not find .env file in any parent directory")
+		}
+		currentDir = parentDir
+	}
 }
 
 func main() {
@@ -46,6 +71,10 @@ func main() {
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile) // Changed to os.Stderr for error logging
 
 	dataSrcName := os.Getenv("DSN")
+	fmt.Println("-----------------------------")
+	fmt.Println("DSN:", dataSrcName) // Print DSN for verification
+	fmt.Println("DSN from environment:", os.Getenv("DSN"))
+
 	db, err := driver.ConnectPostgres(dataSrcName)
 	if err != nil {
 		errorLog.Fatal("Cannot connect to database") // Use errorLog for logging errors

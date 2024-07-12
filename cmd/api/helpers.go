@@ -84,3 +84,17 @@ func (app *application) errorJSON(response http.ResponseWriter, err error, statu
 
 	app.writeJSON(response, statusCode, payload)
 }
+
+// Helper function to split full name into first and last names
+func splitFullName(fullName string) (string, string) {
+	parts := strings.Fields(fullName)
+	if len(parts) == 0 {
+			return "", ""
+	}
+	firstName := parts[0]
+	lastName := ""
+	if len(parts) > 1 {
+			lastName = strings.Join(parts[1:], " ")
+	}
+	return firstName, lastName
+}
