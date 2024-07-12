@@ -15,7 +15,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   }
 
   try {
-    console.log("Sending code to backend");
+    console.log("Sending login code to backend");
     const response = await fetch("http://localhost:8081/auth/oauth/callback", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
