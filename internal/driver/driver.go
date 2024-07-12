@@ -48,6 +48,23 @@ func testDB(database *sql.DB) error {
 	}
 
 	fmt.Println("*** DB ping successful ***")
+	fmt.Println("-----------------------------")
+
+	rows, err := database.Query("SELECT 1")
+	if err != nil {
+		fmt.Println("Failed to execute query:", err)
+	}
+	defer rows.Close()
+
+	var result int
+	for rows.Next() {
+			err := rows.Scan(&result)
+			if err != nil {
+				fmt.Println("Failed to scan result:", err)
+			}
+			fmt.Println("Query result:", result)
+	}
+
 
 	return nil
 }
